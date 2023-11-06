@@ -1,2 +1,11 @@
-# hodlr-ustc-trading-automation
- HODLR is a High Frequency Trading algorithm written in NodeJS and this version works exclusively for USTC (Terra Classic)
+# HODLR 
+## A PROPRIETARY High Frequency Trading Algorithm
+
+NOTE - DO NOT COPY OR USE THE CODE WRITTEN IN THE ALGORITHM FOR ANY COMMERCIAL PURPOSES THAT IS NOT APPROVED BY ME (ARUNADAY BASU)
+
+For licensing and usage rights please contact at the following email id:
+arunadaybasu@gmail.com
+
+THIS ALGORITHM HAS BEEN RELEASED FOR EDUCATIONAL PURPOSES "ONLY" AND ALL ATTEMPTS TO USE IT COMMERCIALLY FOR ABSOLUTELY ANY PURPOSE WITHOUT LEGAL RIGHTS WILL BE REPORTED TO CONCERNED AUTHORITIES AND LITIGATED
+
+DO NOT USE THIS ALGORITHM WITHOUT LEGAL USAGE RIGHTS
