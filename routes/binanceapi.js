@@ -139,7 +139,7 @@ router.get('/prices/update/binance-ustc', async function(req, res, next) {
 
 router.get('/entry/create/rand-ustc', async function(req, res, next) {
 
-  const job = nodeCron.schedule("19 17 * * * *", async () => {
+  const job = nodeCron.schedule("19 */30 * * * *", async () => {
 
     filteredDocs1 = await collection2.find().sort({"timestamp": -1}).limit(1).toArray();
     console.log(filteredDocs1[0].result.price);
@@ -361,7 +361,7 @@ async function longBelowPrice(orderid, priceOld, priceNew) {
 
 router.get('/entry/process/longs', async function(req, res, next) {
 
-  const job = nodeCron.schedule("10 * * * * *", async () => {
+  const job = nodeCron.schedule("13 */2 * * * *", async () => {
 
     filteredDocs1 = await collection1.find({
       status: {$in: ["created", "swapped-ustc"]}
@@ -411,7 +411,7 @@ router.get('/entry/process/longs', async function(req, res, next) {
 
 router.get('/queue/process/usdt', async function(req, res, next) {
 
-  const job = nodeCron.schedule("20 * * * * *", async () => {
+  const job = nodeCron.schedule("37 */2 * * * *", async () => {
 
     filteredDocs1 = await collection1.find({ "status": "queued-usdt" }).sort({"timestamp": -1}).toArray();
     filteredDocs2 = await collection2.find({}).sort({"timestamp": -1}).limit(1).toArray();
@@ -696,7 +696,7 @@ async function shortBelowPrice(orderid, priceOld, priceNew) {
 
 router.get('/entry/process/shorts', async function(req, res, next) {
 
-  const job = nodeCron.schedule("30 * * * * *", async () => {
+  const job = nodeCron.schedule("21 */3 * * * *", async () => {
 
     filteredDocs1 = await collection1.find({ "status": "swapped-usdt" }).sort({"timestamp": -1}).toArray();
     filteredDocs2 = await collection2.find({}).sort({"timestamp": -1}).limit(1).toArray();
@@ -744,7 +744,7 @@ router.get('/entry/process/shorts', async function(req, res, next) {
 
 router.get('/queue/process/ustc', async function(req, res, next) {
 
-  const job = nodeCron.schedule("40 * * * * *", async () => {
+  const job = nodeCron.schedule("57 */3 * * * *", async () => {
 
     filteredDocs1 = await collection1.find({ "status": "queued-ustc" }).sort({"timestamp": -1}).toArray();
     // console.log(filteredDocs1);
