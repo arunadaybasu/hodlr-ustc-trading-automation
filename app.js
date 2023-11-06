@@ -5,8 +5,6 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
-var SupplyApiRouter = require('./routes/supplyapi');
-var PricesApiRouter = require('./routes/pricesapi');
 var binanceApiRouter = require('./routes/binanceapi');
 
 var app = express();
@@ -22,8 +20,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/supplyapi', SupplyApiRouter);
-app.use('/pricesapi', PricesApiRouter);
 app.use('/binanceapi', binanceApiRouter);
 
 // catch 404 and forward to error handler
