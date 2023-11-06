@@ -42,6 +42,7 @@ Create the following collections in the database:
  11. ustc_txns_all
 
 Your database should look like this:
+
 ![MongoDB Database](https://i.ibb.co/gdx84TC/Screenshot-2023-11-07-003036.png)
 
 
@@ -95,12 +96,12 @@ Fire APIs from Postman **in the following order** with a few seconds between fir
 
 All are GET Requests:
 
-http://localhost:3603/binanceapi/prices/update/binance-ustc
-http://localhost:3603/binanceapi/entry/create/rand-ustc
-http://localhost:3603/binanceapi/entry/process/longs
-http://localhost:3603/binanceapi/queue/process/ustc
-http://localhost:3603/binanceapi/entry/process/shorts
-http://localhost:3603/binanceapi/queue/process/usdt
+ 1. http://localhost:3603/binanceapi/prices/update/binance-ustc
+ 2. http://localhost:3603/binanceapi/entry/create/rand-ustc
+ 3. http://localhost:3603/binanceapi/entry/process/longs
+ 4. http://localhost:3603/binanceapi/queue/process/ustc
+ 5. http://localhost:3603/binanceapi/entry/process/shorts
+ 6. http://localhost:3603/binanceapi/queue/process/usdt
 
 Once you fire an API, you will receive a confirmation in Postman as shown below:
 
