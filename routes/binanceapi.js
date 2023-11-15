@@ -15,7 +15,7 @@ var res1 = "binanceapi endpoint working";
 const dbUrl = 'mongodb://localhost:27017';
 const dbClient = new MongoClient(dbUrl);
 // Database Name -- LOCAL
-const dbName = 'ustc_db_main';
+const dbName = 'ustc_db_alt_1';
 dbClient.connect();
 console.log('Connected to MongoDB Server -- Local');
 const db = dbClient.db(dbName);
@@ -41,6 +41,7 @@ const collection7 = db.collection('binance_wait_queue');
 const collection8 = db.collection('binance_txns_all');
 const collection9 = db.collection('ustc_wait_queue');
 const collection10 = db.collection('ustc_txns_all');
+const collection11 = db.collection('stash_accounts');
 
 // Remote Mongodb Collections
 // const remoteCollection1 = dbRemote.collection('entries_ustc');
@@ -139,7 +140,7 @@ router.get('/prices/update/binance-ustc', async function(req, res, next) {
 
 router.get('/entry/create/rand-ustc', async function(req, res, next) {
 
-  const job = nodeCron.schedule("19 */30 * * * *", async () => {
+  // const job = nodeCron.schedule("19 */30 * * * *", async () => {
 
     filteredDocs1 = await collection2.find().sort({"timestamp": -1}).limit(1).toArray();
     console.log(filteredDocs1[0].result.price);
@@ -158,9 +159,9 @@ router.get('/entry/create/rand-ustc', async function(req, res, next) {
     // insertResult2 = await remoteCollection1.insertOne(jsonInsert);
     // console.log(insertResult2);
 
-  });
+  // });
 
-  job.start();
+  // job.start();
 
   const json = {
     "status": 200,
@@ -434,40 +435,70 @@ router.get('/queue/process/usdt', async function(req, res, next) {
 
           ustcValueFinal = usdtValueFinal / filteredDocs1[i].price;
           ustcFees = ustcValueFinal * 0.003;
+
+          if (usdtValueFinal > usdtValueOld)
+          {
+            profitPercent = ( (usdtValueFinal - usdtValueOld) / usdtValueOld ) * 100;
+            if (profitPercent >= 1.0)
+            {
+              filteredDocs4 = await collection11.find({ "orderid": filteredDocs1[i]._id }).toArray();
+
+              jsonInsertResult = {
+                "orderid": filteredDocs1[i]._id,
+                "price_ustc": filteredDocs2[0].result.price,
+                "fees_usdt": usdtFees,
+                "fees_ustc": ustcFees,
+                "swaptotal_usdt": usdtValueOld,
+                "swaptotal_ustc": filteredDocs1[i].quantity,
+                "swapfinal_usdt": usdtValueFinal,
+                "swapfinal_ustc": ustcValueFinal,
+                "status": "swapped",
+                "timestamp": moment().format()
+              };
+              console.log(jsonInsertResult);
+
+              // await collection8.deleteMany({});
+              insertResultBTxnsAll1 = await collection8.insertOne(jsonInsertResult);
+              console.log(insertResultBTxnsAll1);
+            }
+          }
+          else
+          {
+            jsonInsertResult = {
+              "orderid": filteredDocs1[i]._id,
+              "price_ustc": filteredDocs2[0].result.price,
+              "fees_usdt": usdtFees,
+              "fees_ustc": ustcFees,
+              "swaptotal_usdt": usdtValueOld,
+              "swaptotal_ustc": filteredDocs1[i].quantity,
+              "swapfinal_usdt": usdtValueFinal,
+              "swapfinal_ustc": ustcValueFinal,
+              "status": "swapped",
+              "timestamp": moment().format()
+            };
+            console.log(jsonInsertResult);
+
+            // await collection8.deleteMany({});
+            insertResultBTxnsAll1 = await collection8.insertOne(jsonInsertResult);
+            console.log(insertResultBTxnsAll1);
+            // insertResultBTxnsAll2 = await remoteCollection8.insertOne(jsonInsertResult);
+            // console.log(insertResultBTxnsAll2);
+
+            jsonInsertLog = {
+              "orderid": filteredDocs1[i]._id,
+              "status": "LONG/Successfully swapped USTC to USDT",
+              "result": jsonInsertResult,
+              "boolstatus": true,
+              "timestamp": moment().format()
+            };
+            // insertResultLog1 = await collection3.insertOne(jsonInsertLog);
+            // console.log(insertResultLog1);
+            // insertResultLog2 = await remoteCollection3.insertOne(jsonInsertLog);
+            // console.log(insertResultLog2);
+          }
           
-          jsonInsertResult = {
-            "orderid": filteredDocs1[i]._id,
-            "price_ustc": filteredDocs2[0].result.price,
-            "fees_usdt": usdtFees,
-            "fees_ustc": ustcFees,
-            "swaptotal_usdt": usdtValueOld,
-            "swaptotal_ustc": filteredDocs1[i].quantity,
-            "swapfinal_usdt": usdtValueFinal,
-            "swapfinal_ustc": ustcValueFinal,
-            "status": "swapped",
-            "timestamp": moment().format()
-          };
-          console.log(jsonInsertResult);
 
-          // await collection8.deleteMany({});
-          insertResultBTxnsAll1 = await collection8.insertOne(jsonInsertResult);
-          console.log(insertResultBTxnsAll1);
-          // insertResultBTxnsAll2 = await remoteCollection8.insertOne(jsonInsertResult);
-          // console.log(insertResultBTxnsAll2);
-
-          jsonInsertLog = {
-            "orderid": filteredDocs1[i]._id,
-            "status": "LONG/Successfully swapped USTC to USDT",
-            "result": jsonInsertResult,
-            "boolstatus": true,
-            "timestamp": moment().format()
-          };
-          // insertResultLog1 = await collection3.insertOne(jsonInsertLog);
-          // console.log(insertResultLog1);
-          // insertResultLog2 = await remoteCollection3.insertOne(jsonInsertLog);
-          // console.log(insertResultLog2);
-
-          const delQueueQuery1 = { _id: filteredDocs1[i]._id };
+          const delQueueQuery1 = { orderid: filteredDocs1[i]._id };
           const delQueueResult1 = await collection7.deleteOne(delQueueQuery1);
           console.log(delQueueResult1.deletedCount);
 
