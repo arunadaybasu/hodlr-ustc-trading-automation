@@ -446,7 +446,7 @@ router.get('/queue/process/usdt', async function(req, res, next) {
               "orderid": filteredDocs1[i]._id,
               "usdt_profit": totalProfit,
               "usdt_profit_percent": ""+profitPercent+"%",
-              "profit_price_ustc": filteredDocs2[0].result.price,
+              "price_ustc": filteredDocs2[0].result.price,
               "timestamp": moment().format()
             };
             console.log(jsonInsertStash);
@@ -524,7 +524,7 @@ router.get('/queue/process/usdt', async function(req, res, next) {
           console.log(delQueueResult1.deletedCount);
 
           // const optionsEntry = { upsert: true };
-          filterEntry = { _id: filteredDocs1[i]._id, status: ["created", "swapped-ustc"] };
+          filterEntry = { _id: filteredDocs1[i]._id, status: { $in: ["created", "swapped-ustc"] } };
           updateDocEntry = {
             $set: {
               "price": filteredDocs2[0].result.price,
