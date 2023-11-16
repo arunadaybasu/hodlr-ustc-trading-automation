@@ -438,29 +438,82 @@ router.get('/queue/process/usdt', async function(req, res, next) {
 
           if (usdtValueFinal > usdtValueOld)
           {
-            profitPercent = ( (usdtValueFinal - usdtValueOld) / usdtValueOld ) * 100;
+            totalProfit = usdtValueFinal - usdtValueOld;
+            profitPercent = ( totalProfit / usdtValueOld ) * 100;
             if (profitPercent >= 1.0)
             {
-              filteredDocs4 = await collection11.find({ "orderid": filteredDocs1[i]._id }).toArray();
 
-              jsonInsertResult = {
-                "orderid": filteredDocs1[i]._id,
-                "price_ustc": filteredDocs2[0].result.price,
-                "fees_usdt": usdtFees,
-                "fees_ustc": ustcFees,
-                "swaptotal_usdt": usdtValueOld,
-                "swaptotal_ustc": filteredDocs1[i].quantity,
-                "swapfinal_usdt": usdtValueFinal,
-                "swapfinal_ustc": ustcValueFinal,
-                "status": "swapped",
-                "timestamp": moment().format()
-              };
-              console.log(jsonInsertResult);
+              filteredDocs4 = await collection11.find({ "orderid": filteredDocs1[i]._id }).toArray();
+              filterShort = { "orderid": filteredDocs1[i]._id };
+
+              if (filteredDocs4.length == 0) {
+
+                optionsShortDoc = { upsert: true };
+
+                updateDocShort = {
+                  $set: {
+                    "orderid": filteredDocs1[i]._id,
+                    "usdt_account": totalProfit,
+                    "price_updated_at": filteredDocs2[0].result.price,
+                    "timestamp": moment().format()
+                  }
+                };
+                console.log(updateDocShort);
+
+                jsonInsertResult = {
+                  "orderid": filteredDocs1[i]._id,
+                  "price_ustc": filteredDocs2[0].result.price,
+                  "fees_usdt": usdtFees,
+                  "fees_ustc": ustcFees,
+                  "swaptotal_usdt": usdtValueOld,
+                  "swaptotal_ustc": filteredDocs1[i].quantity,
+                  "swapfinal_usdt": (usdtValueFinal - totalProfit),
+                  "swapfinal_ustc": ((usdtValueFinal - totalProfit) / filteredDocs1[i].price),
+                  "status": "swapped",
+                  "timestamp": moment().format()
+                };
+                console.log(jsonInsertResult);
+
+              }
+              else
+              {
+
+                optionsShortDoc = { };
+
+                updateDocShort = {
+                  $set: {
+                    "orderid": filteredDocs1[i]._id,
+                    "usdt_account": (totalProfit + filteredDocs4[0].usdt_account),
+                    "price_updated_at": filteredDocs2[0].result.price,
+                    "timestamp": moment().format()
+                  }
+                };
+                console.log(updateDocShort);
+
+                jsonInsertResult = {
+                  "orderid": filteredDocs1[i]._id,
+                  "price_ustc": filteredDocs2[0].result.price,
+                  "fees_usdt": usdtFees,
+                  "fees_ustc": ustcFees,
+                  "swaptotal_usdt": usdtValueOld,
+                  "swaptotal_ustc": filteredDocs1[i].quantity,
+                  "swapfinal_usdt": (usdtValueFinal - totalProfit),
+                  "swapfinal_ustc": ((usdtValueFinal - totalProfit) / filteredDocs1[i].price),
+                  "status": "swapped",
+                  "timestamp": moment().format()
+                };
+                console.log(jsonInsertResult);
+
+              }
+
+              updateResultDec = await collection11.updateOne(filterShort, updateDocShort, optionsShortDoc);
+              console.log(updateResultDec);
 
               // await collection8.deleteMany({});
               insertResultBTxnsAll1 = await collection8.insertOne(jsonInsertResult);
               console.log(insertResultBTxnsAll1);
             }
+            
           }
           else
           {
@@ -802,34 +855,118 @@ router.get('/queue/process/ustc', async function(req, res, next) {
           usdtValueFinal = ustcValueFinal * filteredDocs1[i].price;
           usdtFees = usdtValueFinal * 0.003;
 
-          jsonInsertResult = {
-            "orderid": filteredDocs1[i]._id,
-            "price_ustc": filteredDocs2[0].result.price,
-            "fees_usdt": usdtFees,
-            "fees_ustc": ustcFees,
-            "swaptotal_usdt": filteredDocs3[j].swapfinal_usdt,
-            "swaptotal_ustc": filteredDocs3[j].swapfinal_ustc,
-            "swapfinal_usdt": usdtValueFinal,
-            "swapfinal_ustc": ustcValueFinal,
-            "status": "swapped",
-            "timestamp": moment().format()
-          };
-          insertResultBTxnsAll1 = await collection10.insertOne(jsonInsertResult);
-          console.log(insertResultBTxnsAll1);
-          // insertResultBTxnsAll2 = await remoteCollection10.insertOne(jsonInsertResult);
-          // console.log(insertResultBTxnsAll2);
+          if (usdtValueFinal > usdtValueOld)
+          {
+            totalProfit = usdtValueFinal - usdtValueOld;
+            profitPercent = ( totalProfit / usdtValueOld ) * 100;
+            if (profitPercent >= 1.0)
+            {
 
-          jsonInsertLog = {
-            "orderid": filteredDocs1[i]._id,
-            "status": "SHORT/Successfully swapped USDT to USTC",
-            "result": jsonInsertResult,
-            "boolstatus": true,
-            "timestamp": moment().format()
-          };
-          // insertResultLog1 = await collection3.insertOne(jsonInsertLog);
-          // console.log(insertResultLog1);
-          // insertResultLog2 = await remoteCollection3.insertOne(jsonInsertLog);
-          // console.log(insertResultLog2);
+              filteredDocs4 = await collection11.find({ "orderid": filteredDocs1[i]._id }).toArray();
+              filterShort = { "orderid": filteredDocs1[i]._id };
+
+              if (filteredDocs4.length == 0) {
+
+                optionsShortDoc = { upsert: true };
+
+                updateDocShort = {
+                  $set: {
+                    "orderid": filteredDocs1[i]._id,
+                    "usdt_account": totalProfit,
+                    "price_updated_at": filteredDocs2[0].result.price,
+                    "timestamp": moment().format()
+                  }
+                };
+                console.log(updateDocShort);
+
+                jsonInsertResult = {
+                  "orderid": filteredDocs1[i]._id,
+                  "price_ustc": filteredDocs2[0].result.price,
+                  "fees_usdt": usdtFees,
+                  "fees_ustc": ustcFees,
+                  "swaptotal_usdt": usdtValueOld,
+                  "swaptotal_ustc": filteredDocs1[i].quantity,
+                  "swapfinal_usdt": (usdtValueFinal - totalProfit),
+                  "swapfinal_ustc": ((usdtValueFinal - totalProfit) / filteredDocs1[i].price),
+                  "status": "swapped",
+                  "timestamp": moment().format()
+                };
+                console.log(jsonInsertResult);
+
+              }
+              else
+              {
+
+                optionsShortDoc = { };
+
+                updateDocShort = {
+                  $set: {
+                    "orderid": filteredDocs1[i]._id,
+                    "usdt_account": (totalProfit + filteredDocs4[0].usdt_account),
+                    "price_updated_at": filteredDocs2[0].result.price,
+                    "timestamp": moment().format()
+                  }
+                };
+                console.log(updateDocShort);
+
+                jsonInsertResult = {
+                  "orderid": filteredDocs1[i]._id,
+                  "price_ustc": filteredDocs2[0].result.price,
+                  "fees_usdt": usdtFees,
+                  "fees_ustc": ustcFees,
+                  "swaptotal_usdt": usdtValueOld,
+                  "swaptotal_ustc": filteredDocs1[i].quantity,
+                  "swapfinal_usdt": (usdtValueFinal - totalProfit),
+                  "swapfinal_ustc": ((usdtValueFinal - totalProfit) / filteredDocs1[i].price),
+                  "status": "swapped",
+                  "timestamp": moment().format()
+                };
+                console.log(jsonInsertResult);
+
+              }
+
+              updateResultDec = await collection11.updateOne(filterShort, updateDocShort, optionsShortDoc);
+              console.log(updateResultDec);
+
+              // await collection8.deleteMany({});
+              insertResultBTxnsAll1 = await collection8.insertOne(jsonInsertResult);
+              console.log(insertResultBTxnsAll1);
+            }
+            
+          }
+          else
+          {
+
+            jsonInsertResult = {
+              "orderid": filteredDocs1[i]._id,
+              "price_ustc": filteredDocs2[0].result.price,
+              "fees_usdt": usdtFees,
+              "fees_ustc": ustcFees,
+              "swaptotal_usdt": filteredDocs3[j].swapfinal_usdt,
+              "swaptotal_ustc": filteredDocs3[j].swapfinal_ustc,
+              "swapfinal_usdt": usdtValueFinal,
+              "swapfinal_ustc": ustcValueFinal,
+              "status": "swapped",
+              "timestamp": moment().format()
+            };
+            insertResultBTxnsAll1 = await collection10.insertOne(jsonInsertResult);
+            console.log(insertResultBTxnsAll1);
+            // insertResultBTxnsAll2 = await remoteCollection10.insertOne(jsonInsertResult);
+            // console.log(insertResultBTxnsAll2);
+
+            jsonInsertLog = {
+              "orderid": filteredDocs1[i]._id,
+              "status": "SHORT/Successfully swapped USDT to USTC",
+              "result": jsonInsertResult,
+              "boolstatus": true,
+              "timestamp": moment().format()
+            };
+            // insertResultLog1 = await collection3.insertOne(jsonInsertLog);
+            // console.log(insertResultLog1);
+            // insertResultLog2 = await remoteCollection3.insertOne(jsonInsertLog);
+            // console.log(insertResultLog2);
+
+          }
 
           const delQueueQuery1 = { _id: filteredDocs1[i]._id };
           const delQueueResult1 = await collection9.deleteOne(delQueueQuery1);
