@@ -362,7 +362,7 @@ async function longBelowPrice(orderid, priceOld, priceNew) {
 
 router.get('/entry/process/longs', async function(req, res, next) {
 
-  const job = nodeCron.schedule("13 */2 * * * *", async () => {
+  const job = nodeCron.schedule("13 * * * * *", async () => {
 
     filteredDocs1 = await collection1.find({
       status: {$in: ["created", "swapped-ustc"]}
@@ -412,7 +412,7 @@ router.get('/entry/process/longs', async function(req, res, next) {
 
 router.get('/queue/process/usdt', async function(req, res, next) {
 
-  const job = nodeCron.schedule("37 */2 * * * *", async () => {
+  const job = nodeCron.schedule("37 * * * * *", async () => {
 
     filteredDocs1 = await collection1.find({ "status": "queued-usdt" }).sort({"timestamp": -1}).toArray();
     filteredDocs2 = await collection2.find({}).sort({"timestamp": -1}).limit(1).toArray();
@@ -438,85 +438,50 @@ router.get('/queue/process/usdt', async function(req, res, next) {
 
           if (usdtValueFinal > usdtValueOld)
           {
+
             totalProfit = usdtValueFinal - usdtValueOld;
             profitPercent = ( totalProfit / usdtValueOld ) * 100;
-            if (profitPercent >= 1.0)
-            {
 
-              filteredDocs4 = await collection11.find({ "orderid": filteredDocs1[i]._id }).toArray();
-              filterShort = { "orderid": filteredDocs1[i]._id };
+            jsonInsertStash = {
+              "orderid": filteredDocs1[i]._id,
+              "usdt_profit": totalProfit,
+              "usdt_profit_percent": ""+profitPercent+"%",
+              "profit_price_ustc": filteredDocs2[0].result.price,
+              "timestamp": moment().format()
+            };
+            console.log(jsonInsertStash);
 
-              if (filteredDocs4.length == 0) {
+            jsonInsertResult = {
+              "orderid": filteredDocs1[i]._id,
+              "price_ustc": filteredDocs2[0].result.price,
+              "fees_usdt": usdtFees,
+              "fees_ustc": ustcFees,
+              "swaptotal_usdt": usdtValueOld,
+              "swaptotal_ustc": filteredDocs1[i].quantity,
+              "swapfinal_usdt": (usdtValueFinal - totalProfit),
+              "swapfinal_ustc": ((usdtValueFinal - totalProfit) / filteredDocs1[i].price),
+              "usdt_profit": totalProfit,
+              "usdt_profit_percent": ""+profitPercent+"%",
+              "status": "swapped",
+              "timestamp": moment().format()
+            };
+            console.log(jsonInsertResult);
 
-                optionsShortDoc = { upsert: true };
+            // await collection11.deleteMany({});
+            insertResultBTxnsAll11 = await collection11.insertOne(jsonInsertResult);
+            console.log(insertResultBTxnsAll11);
 
-                updateDocShort = {
-                  $set: {
-                    "orderid": filteredDocs1[i]._id,
-                    "usdt_account": totalProfit,
-                    "price_updated_at": filteredDocs2[0].result.price,
-                    "timestamp": moment().format()
-                  }
-                };
-                console.log(updateDocShort);
-
-                jsonInsertResult = {
-                  "orderid": filteredDocs1[i]._id,
-                  "price_ustc": filteredDocs2[0].result.price,
-                  "fees_usdt": usdtFees,
-                  "fees_ustc": ustcFees,
-                  "swaptotal_usdt": usdtValueOld,
-                  "swaptotal_ustc": filteredDocs1[i].quantity,
-                  "swapfinal_usdt": (usdtValueFinal - totalProfit),
-                  "swapfinal_ustc": ((usdtValueFinal - totalProfit) / filteredDocs1[i].price),
-                  "status": "swapped",
-                  "timestamp": moment().format()
-                };
-                console.log(jsonInsertResult);
-
-              }
-              else
-              {
-
-                optionsShortDoc = { };
-
-                updateDocShort = {
-                  $set: {
-                    "orderid": filteredDocs1[i]._id,
-                    "usdt_account": (totalProfit + filteredDocs4[0].usdt_account),
-                    "price_updated_at": filteredDocs2[0].result.price,
-                    "timestamp": moment().format()
-                  }
-                };
-                console.log(updateDocShort);
-
-                jsonInsertResult = {
-                  "orderid": filteredDocs1[i]._id,
-                  "price_ustc": filteredDocs2[0].result.price,
-                  "fees_usdt": usdtFees,
-                  "fees_ustc": ustcFees,
-                  "swaptotal_usdt": usdtValueOld,
-                  "swaptotal_ustc": filteredDocs1[i].quantity,
-                  "swapfinal_usdt": (usdtValueFinal - totalProfit),
-                  "swapfinal_ustc": ((usdtValueFinal - totalProfit) / filteredDocs1[i].price),
-                  "status": "swapped",
-                  "timestamp": moment().format()
-                };
-                console.log(jsonInsertResult);
-
-              }
-
-              updateResultDec = await collection11.updateOne(filterShort, updateDocShort, optionsShortDoc);
-              console.log(updateResultDec);
-
-              // await collection8.deleteMany({});
-              insertResultBTxnsAll1 = await collection8.insertOne(jsonInsertResult);
-              console.log(insertResultBTxnsAll1);
-            }
+            // await collection8.deleteMany({});
+            insertResultBTxnsAll8 = await collection8.insertOne(jsonInsertResult);
+            console.log(insertResultBTxnsAll8);
             
           }
           else
           {
+
+            totalLoss = usdtValueOld - usdtValueFinal;
+            lossPercent = ( totalLoss / usdtValueOld ) * 100;
+
             jsonInsertResult = {
               "orderid": filteredDocs1[i]._id,
               "price_ustc": filteredDocs2[0].result.price,
@@ -526,14 +491,16 @@ router.get('/queue/process/usdt', async function(req, res, next) {
               "swaptotal_ustc": filteredDocs1[i].quantity,
               "swapfinal_usdt": usdtValueFinal,
               "swapfinal_ustc": ustcValueFinal,
+              "usdt_loss": totalLoss,
+              "usdt_loss_percent": ""+lossPercent+"%",
               "status": "swapped",
               "timestamp": moment().format()
             };
             console.log(jsonInsertResult);
 
             // await collection8.deleteMany({});
-            insertResultBTxnsAll1 = await collection8.insertOne(jsonInsertResult);
-            console.log(insertResultBTxnsAll1);
+            insertResultBTxnsAll8 = await collection8.insertOne(jsonInsertResult);
+            console.log(insertResultBTxnsAll8);
             // insertResultBTxnsAll2 = await remoteCollection8.insertOne(jsonInsertResult);
             // console.log(insertResultBTxnsAll2);
 
@@ -548,6 +515,7 @@ router.get('/queue/process/usdt', async function(req, res, next) {
             // console.log(insertResultLog1);
             // insertResultLog2 = await remoteCollection3.insertOne(jsonInsertLog);
             // console.log(insertResultLog2);
+
           }
           
 
@@ -555,25 +523,25 @@ router.get('/queue/process/usdt', async function(req, res, next) {
           const delQueueResult1 = await collection7.deleteOne(delQueueQuery1);
           console.log(delQueueResult1.deletedCount);
 
-          const delQueueQuery2 = { orderid: filteredDocs1[i]._id };
-          const delQueueResult2 = await collection5.deleteOne(delQueueQuery2);
-          console.log(delQueueResult2.deletedCount);
-
           const optionsEntry = { upsert: true };
-          filterEntry = { _id: filteredDocs1[i]._id };
+          filterEntry = { _id: filteredDocs1[i]._id, status: "swapped-usdt" };
           updateDocEntry = {
             $set: {
               "price": filteredDocs2[0].result.price,
-              "quantity": ustcValueFinal,
+              "quantity": ((usdtValueFinal - totalProfit) / filteredDocs1[i].price),
               "status": "swapped-usdt"
             },
           };
-          console.log(filteredDocs1[i]._id, filteredDocs2[0].result.price, ustcValueFinal);
+          console.log(filteredDocs1[i]._id, filteredDocs2[0].result.price, ((usdtValueFinal - totalProfit) / filteredDocs1[i].price));
           console.log(updateDocEntry);
           resultEntry1 = await collection1.updateOne(filterEntry, updateDocEntry, {});
           console.log(resultEntry1);
           // resultEntry2 = await remoteCollection1.updateOne(filterEntry, updateDocEntry, {});
           // console.log(resultEntry2);
+
+          const delQueueQuery2 = { orderid: filteredDocs1[i]._id };
+          const delQueueResult2 = await collection5.deleteOne(delQueueQuery2);
+          console.log(delQueueResult2.deletedCount);
 
           console.log('----Swap to USDT');
 
@@ -780,7 +748,7 @@ async function shortBelowPrice(orderid, priceOld, priceNew) {
 
 router.get('/entry/process/shorts', async function(req, res, next) {
 
-  const job = nodeCron.schedule("21 */3 * * * *", async () => {
+  const job = nodeCron.schedule("21 * * * * *", async () => {
 
     filteredDocs1 = await collection1.find({ "status": "swapped-usdt" }).sort({"timestamp": -1}).toArray();
     filteredDocs2 = await collection2.find({}).sort({"timestamp": -1}).limit(1).toArray();
@@ -828,7 +796,7 @@ router.get('/entry/process/shorts', async function(req, res, next) {
 
 router.get('/queue/process/ustc', async function(req, res, next) {
 
-  const job = nodeCron.schedule("57 */3 * * * *", async () => {
+  const job = nodeCron.schedule("57 * * * * *", async () => {
 
     filteredDocs1 = await collection1.find({ "status": "queued-ustc" }).sort({"timestamp": -1}).toArray();
     // console.log(filteredDocs1);
