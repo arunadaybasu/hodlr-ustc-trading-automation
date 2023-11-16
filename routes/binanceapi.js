@@ -468,7 +468,7 @@ router.get('/queue/process/usdt', async function(req, res, next) {
             console.log(jsonInsertResult);
 
             // await collection11.deleteMany({});
-            insertResultBTxnsAll11 = await collection11.insertOne(jsonInsertResult);
+            insertResultBTxnsAll11 = await collection11.insertOne(jsonInsertStash);
             console.log(insertResultBTxnsAll11);
 
             // await collection8.deleteMany({});
@@ -523,8 +523,8 @@ router.get('/queue/process/usdt', async function(req, res, next) {
           const delQueueResult1 = await collection7.deleteOne(delQueueQuery1);
           console.log(delQueueResult1.deletedCount);
 
-          const optionsEntry = { upsert: true };
-          filterEntry = { _id: filteredDocs1[i]._id, status: "swapped-usdt" };
+          // const optionsEntry = { upsert: true };
+          filterEntry = { _id: filteredDocs1[i]._id, status: ["created", "swapped-ustc"] };
           updateDocEntry = {
             $set: {
               "price": filteredDocs2[0].result.price,
@@ -532,10 +532,13 @@ router.get('/queue/process/usdt', async function(req, res, next) {
               "status": "swapped-usdt"
             },
           };
+
           console.log(filteredDocs1[i]._id, filteredDocs2[0].result.price, ((usdtValueFinal - totalProfit) / filteredDocs1[i].price));
           console.log(updateDocEntry);
+
           resultEntry1 = await collection1.updateOne(filterEntry, updateDocEntry, {});
           console.log(resultEntry1);
+
           // resultEntry2 = await remoteCollection1.updateOne(filterEntry, updateDocEntry, {});
           // console.log(resultEntry2);
 
