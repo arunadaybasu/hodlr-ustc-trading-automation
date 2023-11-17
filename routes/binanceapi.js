@@ -469,15 +469,23 @@ router.get('/queue/process/usdt', async function(req, res, next) {
 
             setTimeout(async () => {
               // await collection11.deleteMany({});
-              insertResultBTxnsAll11 = await collection11.insertOne(jsonInsertStash);
-              console.log(insertResultBTxnsAll11);
-            }, 2000);
+              try {
+                insertResultBTxnsAll11 = await collection11.insertOne(jsonInsertStash);
+                console.log(insertResultBTxnsAll11);
+              } catch (err) {
+                console.log(err);
+              }
+            }, 5000);
 
             setTimeout(async () => {
               // await collection8.deleteMany({});
-              insertResultBTxnsAll8 = await collection8.insertOne(jsonInsertResult);
-              console.log(insertResultBTxnsAll8);
-            }, 2000);
+              try {
+                insertResultBTxnsAll8 = await collection8.insertOne(jsonInsertResult);
+                console.log(insertResultBTxnsAll8);
+              } catch (err) {
+                console.log(err);
+              }
+            }, 5000);
 
             updateDocEntry = {
               $set: {
@@ -512,9 +520,13 @@ router.get('/queue/process/usdt', async function(req, res, next) {
 
             setTimeout(async () => {
               // await collection8.deleteMany({});
-              insertResultBTxnsAll8 = await collection8.insertOne(jsonInsertResult);
-              console.log(insertResultBTxnsAll8);
-            }, 2000);
+              try {
+                insertResultBTxnsAll8 = await collection8.insertOne(jsonInsertResult);
+                console.log(insertResultBTxnsAll8);
+              } catch (err) {
+                console.log(err);
+              }
+            }, 5000);
 
             updateDocEntry = {
               $set: {
@@ -542,7 +554,7 @@ router.get('/queue/process/usdt', async function(req, res, next) {
           setTimeout(async () => {
             const delQueueResult1 = await collection7.deleteOne(delQueueQuery1);
             console.log(delQueueResult1.deletedCount);
-          }, 2000);
+          }, 5000);
 
           const optionsEntry = { upsert: true };
           filterEntry = { _id: filteredDocs1[i]._id, status: filteredDocs1[i].status };
@@ -550,9 +562,13 @@ router.get('/queue/process/usdt', async function(req, res, next) {
           console.log(updateDocEntry);
 
           setTimeout(async () => {
-            resultEntry1 = await collection1.updateOne(filterEntry, updateDocEntry, optionsEntry);
-            console.log(resultEntry1);
-          }, 2000);
+            try {
+              resultEntry1 = await collection1.updateOne(filterEntry, updateDocEntry, optionsEntry);
+              console.log(resultEntry1);
+            } catch (err) {
+              console.log(err);
+            }
+          }, 5000);
 
           // resultEntry2 = await remoteCollection1.updateOne(filterEntry, updateDocEntry, {});
           // console.log(resultEntry2);
@@ -561,7 +577,7 @@ router.get('/queue/process/usdt', async function(req, res, next) {
           setTimeout(async () => {
             const delQueueResult2 = await collection5.deleteOne(delQueueQuery2);
             console.log(delQueueResult2.deletedCount);
-          }, 2000);
+          }, 5000);
 
           console.log('----Swap to USDT');
 
@@ -627,9 +643,10 @@ async function shortAbovePrice(orderid, priceOld, priceNew) {
     // resultEntry2 = await remoteCollection1.updateOne(filterEntry, updateDocEntry, {});
     // console.log(resultEntry2);
 
+    const optionsShortDoc = { upsert: true };
+    filterShort = { "orderid": orderid };
     updateDocShort = {
       $set: {
-        "orderid": orderid,
         "priceOld": priceOld,
         "priceNew": priceNew,
         "timestamp": moment().format()
@@ -878,15 +895,23 @@ router.get('/queue/process/ustc', async function(req, res, next) {
 
             setTimeout(async () => {
               // await collection11.deleteMany({});
-              insertResultBTxnsAll11 = await collection11.insertOne(jsonInsertStash);
-              console.log(insertResultBTxnsAll11);
-            }, 2000);
+              try {
+                insertResultBTxnsAll11 = await collection11.insertOne(jsonInsertStash);
+                console.log(insertResultBTxnsAll11);
+              } catch (err) {
+                console.log(err);
+              }
+            }, 5000);
 
             setTimeout(async () => {
               // await collection10.deleteMany({});
-              insertResultBTxnsAll10 = await collection10.insertOne(jsonInsertResult);
-              console.log(insertResultBTxnsAll10);
-            }, 2000);
+              try {
+                insertResultBTxnsAll10 = await collection10.insertOne(jsonInsertResult);
+                console.log(insertResultBTxnsAll10);
+              } catch (err) {
+                console.log(err);
+              }
+            }, 5000);
 
             updateDocEntry = {
               $set: {
@@ -923,9 +948,13 @@ router.get('/queue/process/ustc', async function(req, res, next) {
 
             setTimeout(async () => {
               // await collection10.deleteMany({});
-              insertResultBTxnsAll10 = await collection10.insertOne(jsonInsertResult);
-              console.log(insertResultBTxnsAll10);
-            }, 2000);
+              try {
+                insertResultBTxnsAll10 = await collection10.insertOne(jsonInsertResult);
+                console.log(insertResultBTxnsAll10);
+              } catch (err) {
+                console.log(err);
+              }
+            }, 5000);
 
             updateDocEntry = {
               $set: {
@@ -953,11 +982,11 @@ router.get('/queue/process/ustc', async function(req, res, next) {
           const delQueueQuery1 = { orderid: filteredDocs1[i]._id };
           setTimeout(async () => {
             // runs after 2 seconds
-          }, 2000);
+          }, 5000);
           const delQueueResult1 = await collection9.deleteOne(delQueueQuery1);
           console.log(delQueueResult1.deletedCount);
 
-          const optionsEntry = { upsert: true };
+          // const optionsEntry = { upsert: true };
           filterEntry = { _id: filteredDocs1[i]._id, status: filteredDocs1[i].status };
           console.log(filteredDocs1[i]._id,
             filteredDocs2[0].result.price,
@@ -965,9 +994,13 @@ router.get('/queue/process/ustc', async function(req, res, next) {
           );
           console.log(updateDocEntry);
           setTimeout(async () => {
-            resultEntry1 = await collection1.updateOne(filterEntry, updateDocEntry, optionsEntry);
-            console.log(resultEntry1);
-          }, 2000);
+            try {
+              resultEntry1 = await collection1.updateOne(filterEntry, updateDocEntry, {});
+              console.log(resultEntry1);
+            } catch (err) {
+              console.log(err);
+            }
+          }, 5000);
 
           // resultEntry2 = await remoteCollection1.updateOne(filterEntry, updateDocEntry, {});
           // console.log(resultEntry2);
@@ -976,7 +1009,7 @@ router.get('/queue/process/ustc', async function(req, res, next) {
           setTimeout(async () => {
             const delQueueResult2 = await collection6.deleteOne(delQueueQuery2);
             console.log(delQueueResult2.deletedCount);
-          }, 2000);
+          }, 5000);
 
           console.log('----Swap to USTC');
 
