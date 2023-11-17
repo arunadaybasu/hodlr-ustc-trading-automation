@@ -821,24 +821,26 @@ router.get('/queue/process/ustc', async function(req, res, next) {
 
           console.log('----Swap to USTC');
 
-          ustcValueOld = filteredDocs3[j].swapfinal_usdt / filteredDocs1[i].price;
+          ustcValueOld = filteredDocs3[j].swapfinal_usdt / filteredDocs3[j].price_ustc;
           ustcValueNew = filteredDocs3[j].swapfinal_usdt / filteredDocs2[0].result.price;
           
           ustcFees = ustcValueNew * 0.003;
           ustcValueFinal = ustcValueNew - ustcFees;
 
-          usdtValueFinal = ustcValueFinal * filteredDocs1[i].price;
+          usdtValueFinal = ustcValueFinal * filteredDocs2[0].result.price;
           usdtFees = usdtValueFinal * 0.003;
 
-          if (usdtValueFinal > usdtValueOld)
+          if (ustcValueFinal > ustcValueOld)
           {
 
-            totalProfit = usdtValueFinal - usdtValueOld;
-            profitPercent = ( totalProfit / usdtValueOld ) * 100;
+            totalProfit = ustcValueFinal - ustcValueOld;
+            profitPercent = ( totalProfit / ustcValueOld ) * 100;
+
+            totalProfitUsdt = totalProfit * filteredDocs2[0].result.price;
 
             jsonInsertStash = {
               "orderid": filteredDocs1[i]._id,
-              "usdt_profit": totalProfit,
+              "usdt_profit": totalProfitUsdt,
               "usdt_profit_percent": ""+profitPercent+"%",
               "price_ustc": filteredDocs2[0].result.price,
               "timestamp": moment().format()
@@ -850,11 +852,11 @@ router.get('/queue/process/ustc', async function(req, res, next) {
               "price_ustc": filteredDocs2[0].result.price,
               "fees_usdt": usdtFees,
               "fees_ustc": ustcFees,
-              "swaptotal_usdt": usdtValueOld,
-              "swaptotal_ustc": filteredDocs3[j].swapfinal_ustc,
-              "swapfinal_usdt": (usdtValueFinal - totalProfit),
-              "swapfinal_ustc": ((usdtValueFinal - totalProfit) / filteredDocs1[i].price),
-              "usdt_profit": totalProfit,
+              "swaptotal_usdt": filteredDocs3[j].swapfinal_usdt,
+              "swaptotal_ustc": filteredDocs1[i].quantity,
+              "swapfinal_usdt": (usdtValueFinal - totalProfitUsdt),
+              "swapfinal_ustc": (ustcValueFinal - totalProfit),
+              "usdt_profit": totalProfitUsdt,
               "usdt_profit_percent": ""+profitPercent+"%",
               "status": "swapped",
               "timestamp": moment().format()
@@ -872,7 +874,7 @@ router.get('/queue/process/ustc', async function(req, res, next) {
             updateDocEntry = {
               $set: {
                 "price": filteredDocs2[0].result.price,
-                "quantity": ((usdtValueFinal - totalProfit) / filteredDocs1[i].price),
+                "quantity": (ustcValueFinal - totalProfit),
                 "status": "swapped-ustc"
               },
             };
@@ -881,18 +883,20 @@ router.get('/queue/process/ustc', async function(req, res, next) {
           else
           {
 
-            totalLoss = usdtValueOld - usdtValueFinal;
-            lossPercent = ( totalLoss / usdtValueOld ) * 100;
+            totalLoss = filteredDocs3[j].swapfinal_usdt - usdtValueFinal;
+            lossPercent = ( totalLoss / filteredDocs3[j].swapfinal_usdt ) * 100;
+
+            totalLossUstc = totalLoss * filteredDocs2[0].result.price;
 
             jsonInsertResult = {
               "orderid": filteredDocs1[i]._id,
               "price_ustc": filteredDocs2[0].result.price,
               "fees_usdt": usdtFees,
               "fees_ustc": ustcFees,
-              "swaptotal_usdt": usdtValueOld,
+              "swaptotal_usdt": filteredDocs3[j].swapfinal_usdt,
               "swaptotal_ustc": filteredDocs3[j].swapfinal_ustc,
-              "swapfinal_usdt": (usdtValueFinal - totalLoss),
-              "swapfinal_ustc": ((usdtValueFinal - totalLoss) / filteredDocs1[i].price),
+              "swapfinal_usdt": (filteredDocs3[j].swapfinal_usdt - totalLoss),
+              "swapfinal_ustc": (filteredDocs3[j].swapfinal_ustc - totalLossUstc),
               "usdt_loss": totalLoss,
               "usdt_loss_percent": ""+lossPercent+"%",
               "status": "swapped",
@@ -901,13 +905,13 @@ router.get('/queue/process/ustc', async function(req, res, next) {
             console.log(jsonInsertResult);
 
             // await collection10.deleteMany({});
-            insertResultBTxnsAll8 = await collection8.insertOne(jsonInsertResult);
-            console.log(insertResultBTxnsAll8);
-
+            insertResultBTxnsAll10 = await collection10.insertOne(jsonInsertResult);
+            console.log(insertResultBTxnsAll10);
+            
             updateDocEntry = {
               $set: {
                 "price": filteredDocs2[0].result.price,
-                "quantity": ((usdtValueFinal - totalLoss) / filteredDocs1[i].price),
+                "quantity": (filteredDocs3[j].swapfinal_ustc - totalLossUstc),
                 "status": "swapped-ustc"
               },
             };
